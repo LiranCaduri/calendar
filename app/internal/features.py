@@ -1,8 +1,8 @@
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 from functools import wraps
-from starlette.responses import RedirectResponse, Response
-from typing import List, Dict
+from starlette.responses import RedirectResponse
+from typing import List
 
 from app.database.models import UserFeature, Feature
 from app.dependencies import get_db, SessionLocal
@@ -15,7 +15,6 @@ def feature_access_filter(call_next):
     @wraps(call_next)
     async def wrapper(*args, **kwargs):
         request = kwargs['request']
-        session = kwargs['session']
 
         if request.headers['user-agent'] == 'testclient':
             # in case it's a unit test.
@@ -29,33 +28,31 @@ def feature_access_filter(call_next):
 
         if is_enabled:
             # in case the feature is enabled or access is allowed.
-            resp = await call_next(*args, **kwargs)
+            return await call_next(*args, **kwargs)
 
         elif 'referer' not in request.headers:
             # in case request come straight from address bar in browser.
-            resp = RedirectResponse(url='/')
+            return RedirectResponse(url='/')
 
         # in case the feature is disabled or access isn't allowed.
-        resp = RedirectResponse(url=request.headers['referer'])
-        resp = create_cookie(response=resp, session=session)
-        return resp
+        return RedirectResponse(url=request.headers['referer'])
 
     return wrapper
 
 
-def create_cookie(response: Response, session: SessionLocal):
-    response.delete_cookie(key="features")
-    content = create_dict_for_users_features_token(session=session)
-    print(content)
-    response.set_cookie(key="features", value=content)
-    return response
+# def create_cookie(response: Response, session: SessionLocal):
+#     response.delete_cookie(key="features")
+#     content = get_user_features(session=session)
+#     print(content)
+#     response.set_cookie(key="features", value=content)
+#     return response
 
 
-def create_dict_for_users_features_token(
-    session: SessionLocal
-) -> Dict:
-    user_id = get_current_user(session=session).id
-    print('in')
+def get_user_features(
+    session: SessionLocal,
+    user_id: int
+):
+
     features_dict = {}
     all_features = session.query(UserFeature).filter_by(user_id=user_id).all()
 

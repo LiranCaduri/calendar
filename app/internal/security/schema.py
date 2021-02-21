@@ -10,6 +10,8 @@ class CurrentUser(BaseModel):
     """
     user_id: Optional[int]
     username: str
+    features: Optional[dict]
+    is_manager: Optional[bool]
 
     class Config:
         orm_mode = True
@@ -20,5 +22,4 @@ class LoginUser(CurrentUser):
     Validating fields types
     Returns a User object for signing in.
     """
-    is_manager: Optional[bool]
     password: str
