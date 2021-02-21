@@ -1,6 +1,7 @@
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from functools import wraps
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, Response
 from typing import List, Dict
 
 from app.database.models import UserFeature, Feature
@@ -14,6 +15,7 @@ def feature_access_filter(call_next):
     @wraps(call_next)
     async def wrapper(*args, **kwargs):
         request = kwargs['request']
+        session = kwargs['session']
 
         if request.headers['user-agent'] == 'testclient':
             # in case it's a unit test.
@@ -27,21 +29,33 @@ def feature_access_filter(call_next):
 
         if is_enabled:
             # in case the feature is enabled or access is allowed.
-            return await call_next(*args, **kwargs)
+            resp = await call_next(*args, **kwargs)
 
         elif 'referer' not in request.headers:
             # in case request come straight from address bar in browser.
-            return RedirectResponse(url='/')
+            resp = RedirectResponse(url='/')
 
         # in case the feature is disabled or access isn't allowed.
-        return RedirectResponse(url=request.headers['referer'])
+        resp = RedirectResponse(url=request.headers['referer'])
+        resp = create_cookie(response=resp, session=session)
+        return resp
 
     return wrapper
 
 
-async def create_dict_for_users_features_token(
-    user_id: int, session: SessionLocal = Depends(get_db)
+def create_cookie(response: Response, session: SessionLocal):
+    response.delete_cookie(key="features")
+    content = create_dict_for_users_features_token(session=session)
+    print(content)
+    response.set_cookie(key="features", value=content)
+    return response
+
+
+def create_dict_for_users_features_token(
+    session: SessionLocal
 ) -> Dict:
+    user_id = get_current_user(session=session).id
+    print('in')
     features_dict = {}
     all_features = session.query(UserFeature).filter_by(user_id=user_id).all()
 
@@ -49,7 +63,7 @@ async def create_dict_for_users_features_token(
         features_dict.update(
             {f'{feat.user_id}{feat.feature_id}': feat.__dict__})
 
-    return features_dict
+    return jsonable_encoder(features_dict)
 
 
 def create_features_at_startup(session: SessionLocal) -> bool:

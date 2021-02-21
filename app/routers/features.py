@@ -1,12 +1,15 @@
-from app.internal.utils import get_current_user
 from fastapi import APIRouter, Request, Depends
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse, Response
 from typing import List
 
 from app.dependencies import get_db, SessionLocal
 from app.database.models import UserFeature, Feature
+from app.internal.utils import get_current_user
 from app.internal.features import (
     create_user_feature_association,
     is_association_exists_in_db,
+    create_cookie
 )
 
 router = APIRouter(
@@ -47,7 +50,10 @@ async def add_feature_to_user(
         is_enable=True
     )
 
-    return session.query(UserFeature).filter_by(id=association.id).first()
+    uf = session.query(UserFeature).filter_by(id=association.id).first()
+    resp = JSONResponse(content=jsonable_encoder(uf))
+    resp = create_cookie(response=resp, session=session)
+    return resp
 
 
 @router.post('/delete')
@@ -71,4 +77,7 @@ async def delete_user_feature_association(
     ).delete()
     session.commit()
 
-    return True
+    resp = Response(content=jsonable_encoder('True'))
+    resp = create_cookie(response=resp, session=session)
+
+    return resp

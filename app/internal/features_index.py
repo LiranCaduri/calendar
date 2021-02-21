@@ -48,4 +48,10 @@ features = [
         "description": "Sync Google Calendar events with Pylender",
         "creator": "Liran Caduri"
     },
+    {
+        "name": "test",
+        "route": "/agenda",
+        "description": "Sync Google Calendar events with Pylender",
+        "creator": "agenda"
+    },
 ]
