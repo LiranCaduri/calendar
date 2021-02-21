@@ -30,20 +30,24 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 ####
-from app.database.models import UserFeature
+# from app.database.models import UserFeature
+# from app.internal.features import get_user_features
+# from typing import  Dict
 
-async def get_user_features(
-    db: Session, user_id: int) -> Dict:
+# async def get_user_features(
+#     db: Session, user_id: int) -> Dict:
 
-    features_dict = {}
-    all_features = db.query(UserFeature).filter_by(user_id=user_id).all()
+#     features_dict = {}
+#     all_features = db.query(UserFeature).filter_by(user_id=user_id).all()
 
-    for feat in all_features:
-        feat_in_dict = feat.__dict__
-        features_dict.update({f'{feat.user_id}{feat.feature_id}': feat_in_dict})
-    return features_dict
+#     for feat in all_features:
+#         feat_in_dict = feat.__dict__
+#         features_dict.update({f'{feat.user_id}{feat.feature_id}': feat_in_dict})
+#     return features_dict
 ####
-
+from app.database.models import UserFeature
+from app.internal.features import get_user_features
+from typing import  Dict
 
 async def authenticate_user(
     db: Session,
@@ -51,7 +55,9 @@ async def authenticate_user(
 ) -> Union[schema.LoginUser, bool]:
     """Verifying user is in database and password is correct"""
     db_user = await User.get_by_username(db=db, username=new_user.username)
-    user_features = get_user_features(db=db, user_id=db_user.id)
+    user_features = await get_user_features(db=db, user_id=db_user.id)
+    print("dict from liran")
+    print(user_features)
     if db_user and verify_password(new_user.password, db_user.password):
         return schema.LoginUser(
             user_id=db_user.id,
@@ -74,6 +80,7 @@ def create_jwt_token(
         "sub": user.username,
         "user_id": user.user_id,
         "is_manager": user.is_manager,
+        "user_features": user.user_features,
         "exp": expiration,
     }
     jwt_token = jwt.encode(jwt_payload, jwt_key, algorithm=JWT_ALGORITHM)

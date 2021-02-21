@@ -68,3 +68,11 @@ async def login(
         httponly=True,
     )
     return response
+
+from app.internal.security.dependancies import current_user
+
+@router.get('/current_user')
+async def current_user(
+        request: Request, user: str =  Depends(current_user)):
+    print(user.features)
+    return {"user": user.features}

@@ -10,6 +10,7 @@ class CurrentUser(BaseModel):
     """
     user_id: Optional[int]
     username: str
+    features: Optional[dict]
 
     class Config:
         orm_mode = True
@@ -22,4 +23,4 @@ class LoginUser(CurrentUser):
     """
     is_manager: Optional[bool]
     password: str
-    user_fetures: Optional[dict]
+    user_features: Optional[dict]

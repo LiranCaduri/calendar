@@ -69,4 +69,5 @@ async def current_user(
     jwt_payload = await get_jwt_token(db, jwt)
     username = jwt_payload.get("sub")
     user_id = jwt_payload.get("user_id")
+    features = jwt_payload.get("user_features")
     return schema.CurrentUser(user_id=user_id, username=username)

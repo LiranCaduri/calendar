@@ -39,16 +39,15 @@ def feature_access_filter(call_next):
     return wrapper
 
 
-async def create_dict_for_users_features_token(
-    user_id: int, session: SessionLocal = Depends(get_db)
-) -> Dict:
+async def get_user_features(
+    db: SessionLocal, user_id: int) -> Dict:
+
     features_dict = {}
-    all_features = session.query(UserFeature).filter_by(user_id=user_id).all()
+    all_features = db.query(UserFeature).filter_by(user_id=user_id).all()
 
     for feat in all_features:
-        features_dict.update(
-            {f'{feat.user_id}{feat.feature_id}': feat.__dict__})
-
+        feat_in_dict = feat.__dict__
+        features_dict.update({f'{feat.user_id}{feat.feature_id}': feat_in_dict})
     return features_dict
 
 
