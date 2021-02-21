@@ -56,15 +56,13 @@ async def authenticate_user(
     """Verifying user is in database and password is correct"""
     db_user = await User.get_by_username(db=db, username=new_user.username)
     user_features = await get_user_features(db=db, user_id=db_user.id)
-    print("dict from liran")
-    print(user_features)
     if db_user and verify_password(new_user.password, db_user.password):
         return schema.LoginUser(
             user_id=db_user.id,
             is_manager=db_user.is_manager,
             username=new_user.username,
             password=db_user.password,
-            user_features=user_features
+            features=user_features
         )
     return False
 

@@ -69,19 +69,20 @@ async def login(
     )
     return response
 
-from app.internal.security.dependancies import current_user, LoginUser
+from app.internal.security.dependancies import current_user
+from app.internal.security.schema import LoginUser
 
 
 @router.get('/update_features')
 async def current_user(
         request: Request, user: str =  Depends(current_user)):
-    print(user.features)
-    user = LoginUser(user_id=user.user_id, username=user.username, is_manager=user.is_manager, user_features= await get_user_features(db=db, user_id=user.id))
-    jwt_token = create_jwt_token(user)
-    response = RedirectResponse(next, status_code=HTTP_302_FOUND)
+    # print(user.features)
+    new_user = LoginUser(user_id=user.user_id, username=user.username, is_manager=user.is_manager, user_features={})
+    jwt_token = create_jwt_token(new_user)
+    response = RedirectResponse(url="jhjh", status_code=HTTP_302_FOUND)
     response.set_cookie(
         "Authorization",
         value=jwt_token,
         httponly=True,
     )
-    return {"user": user.features}
+    return response
