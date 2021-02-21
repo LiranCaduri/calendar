@@ -1,7 +1,8 @@
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from functools import wraps
 from starlette.responses import RedirectResponse
-from typing import List, Dict
+from typing import List
 
 from app.database.models import UserFeature, Feature
 from app.dependencies import get_db, SessionLocal
@@ -39,16 +40,27 @@ def feature_access_filter(call_next):
     return wrapper
 
 
-async def get_user_features(
-    db: SessionLocal, user_id: int) -> Dict:
+# def create_cookie(response: Response, session: SessionLocal):
+#     response.delete_cookie(key="features")
+#     content = get_user_features(session=session)
+#     print(content)
+#     response.set_cookie(key="features", value=content)
+#     return response
+
+
+def get_user_features(
+    session: SessionLocal,
+    user_id: int
+):
 
     features_dict = {}
-    all_features = db.query(UserFeature).filter_by(user_id=user_id).all()
+    all_features = session.query(UserFeature).filter_by(user_id=user_id).all()
 
     for feat in all_features:
-        feat_in_dict = feat.__dict__
-        features_dict.update({f'{feat.user_id}{feat.feature_id}': feat_in_dict})
-    return features_dict
+        features_dict.update(
+            {f'{feat.user_id}{feat.feature_id}': feat.__dict__})
+
+    return jsonable_encoder(features_dict)
 
 
 def create_features_at_startup(session: SessionLocal) -> bool:

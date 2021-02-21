@@ -1,12 +1,18 @@
-from app.internal.utils import get_current_user
 from fastapi import APIRouter, Request, Depends
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import Response
 from typing import List
 
 from app.dependencies import get_db, SessionLocal
 from app.database.models import UserFeature, Feature
+from app.internal.security.dependancies import current_user
+from app.internal.security.schema import CurrentUser
+from app.internal.security.ouath2 import create_jwt_token
+from app.internal.utils import get_current_user
 from app.internal.features import (
     create_user_feature_association,
     is_association_exists_in_db,
+    get_user_features
 )
 
 router = APIRouter(
@@ -26,10 +32,11 @@ async def index(
 
 @router.post('/add')
 async def add_feature_to_user(
-    request: Request, session: SessionLocal = Depends(get_db)
+    request: Request,
+    session: SessionLocal = Depends(get_db),
+    user: str = Depends(current_user)
 ) -> UserFeature:
     form = await request.form()
-
     user = get_current_user(session=session)
     feat = session.query(Feature).filter_by(id=form['feature_id']).first()
 
@@ -46,14 +53,32 @@ async def add_feature_to_user(
         user_id=user.id,
         is_enable=True
     )
+    print('index', user)
+    user = CurrentUser(
+        user_id=user.user_id,
+        username=user.username,
+        is_manager=user.is_manager,
+        features=get_user_features(
+            session=session, user_id=user.user_id
+        )
+    )
 
-    return session.query(UserFeature).filter_by(id=association.id).first()
+    jwt_token = create_jwt_token(user)
+    response = Response(content=jsonable_encoder(association.__dict__))
+    response.set_cookie(
+        "Authorization",
+        value=jwt_token,
+        httponly=True,
+    )
+
+    return response
 
 
 @router.post('/delete')
 async def delete_user_feature_association(
     request: Request,
-    session: SessionLocal = Depends(get_db)
+    session: SessionLocal = Depends(get_db),
+    user: str = Depends(current_user)
 ) -> bool:
     form = await request.form()
 
@@ -70,5 +95,8 @@ async def delete_user_feature_association(
         user_id=user.id
     ).delete()
     session.commit()
+
+    # resp = Response(content=jsonable_encoder('True'))
+    # resp = create_cookie(response=resp, session=session)
 
     return True
