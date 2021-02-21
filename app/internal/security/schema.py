@@ -22,3 +22,4 @@ class LoginUser(CurrentUser):
     """
     is_manager: Optional[bool]
     password: str
+    user_fetures: Optional[dict]
