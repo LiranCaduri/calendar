@@ -32,6 +32,16 @@ import app.routers.salary.config as SalaryConfig
 Base: DeclarativeMeta = declarative_base()
 
 
+class UserFeature(Base):
+    __tablename__ = "user_feature"
+
+    id = Column(Integer, primary_key=True, index=True)
+    feature_id = Column('feature_id', Integer, ForeignKey('features.id'))
+    user_id = Column('user_id', Integer, ForeignKey('users.id'))
+
+    is_enable = Column(Boolean, default=False)
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -67,6 +77,7 @@ class User(Base):
     )
     comments = relationship("Comment", back_populates="user")
 
+    features = relationship("Feature", secondary=UserFeature.__tablename__)
     oauth_credentials = relationship(
         "OAuthCredentials",
         cascade="all, delete",
@@ -81,6 +92,18 @@ class User(Base):
     async def get_by_username(db: Session, username: str) -> User:
         """query database for a user by unique username"""
         return db.query(User).filter(User.username == username).first()
+
+
+class Feature(Base):
+    __tablename__ = "features"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    route = Column(String, nullable=False)
+    creator = Column(String, nullable=True)
+    description = Column(String, nullable=False)
+
+    users = relationship("User", secondary=UserFeature.__tablename__)
 
 
 class Event(Base):

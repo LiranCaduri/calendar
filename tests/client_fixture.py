@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app import main
 from app.database.models import Base, User
 from app.routers import (
-    agenda, categories, event, friendview, google_connect,
+    agenda, categories, event, features, friendview, google_connect,
     invitation, profile, weight,
 )
 from app.routers.salary import routes as salary
@@ -104,12 +104,10 @@ def salary_test_client() -> Iterator[TestClient]:
 
 
 @pytest.fixture(scope="session")
+def features_test_client() -> Iterator[TestClient]:
+    yield from create_test_client(features.get_db)
+
+
+@pytest.fixture(scope="session")
 def google_connect_test_client():
-    Base.metadata.create_all(bind=test_engine)
-    main.app.dependency_overrides[google_connect.get_db] = get_test_db
-
-    with TestClient(main.app) as client:
-        yield client
-
-    main.app.dependency_overrides = {}
-    Base.metadata.drop_all(bind=test_engine)
+    yield from create_test_client(google_connect.get_db)
