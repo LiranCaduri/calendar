@@ -60,6 +60,7 @@ def create_jwt_token(
         "sub": user.username,
         "user_id": user.user_id,
         "is_manager": user.is_manager,
+        "features": user.features,   
         "exp": expiration,
     }
     jwt_token = jwt.encode(jwt_payload, jwt_key, algorithm=JWT_ALGORITHM)

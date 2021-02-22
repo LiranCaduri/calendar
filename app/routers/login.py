@@ -70,19 +70,9 @@ async def login(
     return response
 
 from app.internal.security.dependancies import current_user
-from app.internal.security.schema import CurrentUser
+@router.get('/new_features')
+async def new_features(
+        request: Request, db: Session = Depends(get_db), user =  Depends(current_user)):
 
-
-@router.get('/update_features')
-async def current_user(
-        request: Request, user: str =  Depends(current_user)):
-    # print(user.features)
-    new_user = CurrentUser(user_id=user.user_id, username=user.username, is_manager=user.is_manager, user_features={})
-    jwt_token = create_jwt_token(new_user)
-    response = RedirectResponse(url="/", status_code=HTTP_302_FOUND)
-    response.set_cookie(
-        "Authorization",
-        value=jwt_token,
-        httponly=True,
-    )
-    return response
+        print("new features route: ", user.features)
+        return {"features": user.features}

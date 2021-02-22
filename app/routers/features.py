@@ -6,7 +6,7 @@ from typing import List
 from app.dependencies import get_db, SessionLocal
 from app.database.models import UserFeature, Feature
 from app.internal.security.dependancies import current_user
-from app.internal.security.schema import CurrentUser
+from app.internal.security.schema import UpdateFeatures, CurrentUser
 from app.internal.security.ouath2 import create_jwt_token
 from app.internal.utils import get_current_user
 from app.internal.features import (
@@ -37,7 +37,7 @@ async def add_feature_to_user(
     user: str = Depends(current_user)
 ) -> UserFeature:
     form = await request.form()
-    user = get_current_user(session=session)
+
     feat = session.query(Feature).filter_by(id=form['feature_id']).first()
 
     is_exist = is_association_exists_in_db(form=form, session=session)
@@ -54,23 +54,38 @@ async def add_feature_to_user(
         is_enable=True
     )
     print('index', user)
-    user = CurrentUser(
+    user = UpdateFeatures(
         user_id=user.user_id,
         username=user.username,
-        is_manager=user.is_manager,
         features=get_user_features(
             session=session, user_id=user.user_id
         )
     )
 
-    jwt_token = create_jwt_token(user)
+    updated_features_token = create_jwt_token(user)
     response = Response(content=jsonable_encoder(association.__dict__))
+    response.set_cookie(
+        "Authorization",
+        value=updated_features_token,
+        httponly=True,
+    )
+
+    return response
+
+from starlette.responses import RedirectResponse
+
+@router.get('/update_features')
+async def update_features(
+        request: Request, db: SessionLocal = Depends(get_db), user: str =  Depends(current_user)):
+    print("update features route: ", user.features)
+    new_user = UpdateFeatures(user_id=user.user_id, username=user.username, features={'features': [1, 2, 3]})
+    jwt_token = create_jwt_token(new_user)
+    response = RedirectResponse(url="/new_features", status_code=302)
     response.set_cookie(
         "Authorization",
         value=jwt_token,
         httponly=True,
     )
-
     return response
 
 

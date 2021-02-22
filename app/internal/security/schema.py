@@ -9,10 +9,9 @@ class CurrentUser(BaseModel):
     Returns a user details as a class.
     """
     user_id: Optional[int]
-    username: str
     features: Optional[dict]
-    is_manager: Optional[bool]
-
+    username: str
+    
     class Config:
         orm_mode = True
 
@@ -23,3 +22,12 @@ class LoginUser(CurrentUser):
     Returns a User object for signing in.
     """
     password: str
+    is_manager: Optional[bool]
+
+
+class UpdateFeatures(CurrentUser):
+    """
+    Validating fields types
+    Returns a User object for signing in.
+    """
+    is_manager: Optional[bool] = False
