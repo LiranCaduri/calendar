@@ -72,21 +72,6 @@ nav {
   background-color: var(--secondary);
 }
 
-#open-features {
-  font-size: var(--icon_l);
-  margin-top: var(--space_s);
-}
-
-#feature-settings {
-  visibility: hidden;
-  width: 0.1rem;
-  background-color: var(--surface);
-}
-
-.settings-open {
-    width: 20rem;
-}
-
 img {fill: var(--background);}
 
 header {

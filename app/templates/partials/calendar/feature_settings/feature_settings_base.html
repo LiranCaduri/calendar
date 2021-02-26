@@ -1,0 +1,30 @@
+<div class="feature-settings-closed" id="feature-set-panel">
+    <div class="feature-settings-panel">
+        <div class="flex-row">
+            <div class="title">
+                <!-- feature.name.upper() -->
+                <span id="feature-name">FEATURE NAME</span>
+            </div>
+        </div>
+        <div class="flex-row">
+            <div>
+                <!-- eature.followers -->
+                <ion-icon class="feature-icon text-red" name="heart"></ion-icon>
+                <span><b>Followers:</b></span><span id="feature-followers"> 0 </span>
+            </div>
+            <div>
+                <!-- feature.creator.title() -->
+                <span><b>Creator:</b></span></span id="feature-creator"> username </span>
+            </div>
+        </div>
+        <div class="s-paragraph" id="feature-info">
+            <!-- feature.information -->
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Id, autem saepe!
+            Obcaecati maxime.
+        </div>
+        <div id="feature-content">
+            {% set name = 'example_panel.html' %}
+            {% include 'partials/features_panels/' + name %}
+        </div>
+    </div>
+</div>
